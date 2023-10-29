@@ -8,7 +8,7 @@
     "city": "NY",
     "phone": "1234567890",
     "email": "card1@example.com",
-    "imageUrl": "https://omerbenda98.github.io/react-project/images/initialDog1.jpg"
+    "imageUrl": "https://dog-adopt-app-ae8e92c9ad07.herokuapp.com/react-project/uploads/initialDog1.jpg"
   },
   {
     "name": "Card2",
@@ -19,7 +19,7 @@
     "city": "NY",
     "phone": "1234567890",
     "email": "card1@example.com",
-    "imageUrl": "https://omerbenda98.github.io/react-project/images/initialDog2.jpg"
+    "imageUrl": "https://dog-adopt-app-ae8e92c9ad07.herokuapp.com/react-project/uploads/initialDog2.jpg"
   },
   {
     "name": "Card3",
@@ -30,6 +30,6 @@
     "city": "NY",
     "phone": "1234567890",
     "email": "card1@example.com",
-    "imageUrl": "http://omerbenda98.github.io/react-project/images/initialDog3.jpg"
+    "imageUrl": "https://dog-adopt-app-ae8e92c9ad07.herokuapp.com/react-project/uploads/initialDog3.jpg"
   }
 ]
