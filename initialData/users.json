@@ -1,0 +1,47 @@
+[
+  {
+    "firstName": "David",
+    "lastName": "Cohen",
+    "phone": "1234567890",
+    "email": "david@gmail.com",
+    "password": "Aa123456!",
+    "country": "USA",
+    "city": "NY",
+    "street": "123 Street",
+    "houseNumber": "45A",
+    "imageUrl": "http://localhost:3000/images/initialUserImage1.jpg",
+    "imageAlt": "initial User 1",
+    "biz": false,
+    "isAdmin": true
+  },
+  {
+    "firstName": "Ronoa",
+    "lastName": "Zoro",
+    "phone": "1234567890",
+    "email": "zoro@gmail.com",
+    "password": "Aa123456!",
+    "country": "USA",
+    "city": "NY",
+    "street": "123 Street",
+    "houseNumber": "45A",
+    "imageUrl": "http://localhost:3000/images/initialUserImage2.jpg",
+    "imageAlt": "initial User 2",
+    "biz": false,
+    "isAdmin": false
+  },
+  {
+    "firstName": "John",
+    "lastName": "Doe",
+    "phone": "1234567890",
+    "email": "john@gmail.com",
+    "password": "Aa123456!",
+    "country": "USA",
+    "city": "NY",
+    "street": "123 Street",
+    "houseNumber": "45A",
+    "imageUrl": "http://localhost:3000/images/initialUserImage3.jpg",
+    "imageAlt": "initial User 3",
+    "biz": true,
+    "isAdmin": false
+  }
+]

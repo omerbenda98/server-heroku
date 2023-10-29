@@ -1,0 +1,6 @@
+{
+  "dbConfig": {
+    "url": "mongodb+srv://admin:Aa123456!@cluster0.u45jsdg.mongodb.net/?retryWrites=true&w=majority"
+  },
+  "jwtKey": "YourPrivateKeyVer3"
+}

@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Card1",
+    "age": "1",
+    "breed": "Breed1",
+    "description": "Description for Card1",
+    "country": "USA",
+    "city": "NY",
+    "phone": "1234567890",
+    "email": "card1@example.com",
+    "imageUrl": "http://localhost:3000/images/initialDog1.jpg"
+  },
+  {
+    "name": "Card2",
+    "age": "2",
+    "breed": "Breed2",
+    "description": "Description for Card2",
+    "country": "USA",
+    "city": "NY",
+    "phone": "1234567890",
+    "email": "card1@example.com",
+    "imageUrl": "http://localhost:3000/images/initialDog2.jpg"
+  },
+  {
+    "name": "Card3",
+    "age": "3",
+    "breed": "Breed1",
+    "description": "Description for Card3",
+    "country": "USA",
+    "city": "NY",
+    "phone": "1234567890",
+    "email": "card1@example.com",
+    "imageUrl": "http://localhost:3000/images/initialDog3.jpg"
+  }
+]
