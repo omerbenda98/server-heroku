@@ -79,7 +79,9 @@ app.get("/api/validate-token", (req, res) => {
     return res.json({ valid: true, user });
   });
 });
-
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 // multer used for file upload to 'uploads' folder
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -110,6 +112,6 @@ app.use("/api/cards", cardsRouter);
 app.use("/api/chats", chatRouter);
 
 const PORT = 8181;
-server.listen(process.env.PORT, () =>
+server.listen(process.env.PORT || PORT, () =>
   console.log(chalk.blueBright.bold(`server run on: http://localhost:${PORT}`))
 );
