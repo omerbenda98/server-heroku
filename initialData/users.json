@@ -11,6 +11,7 @@
     "houseNumber": "45A",
     "imageUrl": "http://localhost:3000/images/initialUserImage1.jpg",
     "imageAlt": "initial User 1",
+    "zipCode": "1111111",
     "biz": false,
     "isAdmin": true
   },
@@ -26,6 +27,7 @@
     "houseNumber": "45A",
     "imageUrl": "http://localhost:3000/images/initialUserImage2.jpg",
     "imageAlt": "initial User 2",
+    "zipCode": "2222222",
     "biz": false,
     "isAdmin": false
   },
@@ -41,6 +43,7 @@
     "houseNumber": "45A",
     "imageUrl": "http://localhost:3000/images/initialUserImage3.jpg",
     "imageAlt": "initial User 3",
+    "zipCode": "3333333",
     "biz": true,
     "isAdmin": false
   }
