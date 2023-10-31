@@ -19,6 +19,12 @@ const config = require("config");
 const jwt = require("jsonwebtoken");
 
 const server = http.createServer(app);
+app.use(
+  cors({
+    origin: "https://omerbenda98.github.io",
+  })
+);
+app.use(morgan(chalk.cyan(":method :url :status :response-time ms")));
 
 // Attach socket.io to the server
 const io = new Server(server, {
@@ -104,8 +110,6 @@ initialData();
 app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
 
-app.use(morgan(chalk.cyan(":method :url :status :response-time ms")));
-app.use(cors());
 app.use(express.json());
 app.use("/api/users", usersRouter);
 app.use("/api/cards", cardsRouter);
