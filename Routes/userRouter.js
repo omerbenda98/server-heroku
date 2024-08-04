@@ -42,14 +42,14 @@ router.post("/login", async (req, res) => {
 
   let user = await User.findOne({ email: req.body.email });
   if (!user) {
-    console.log(chalk.redBright("Invalid email"));
-    return res.status(400).send("Invalid email or password.");
+    console.log(chalk.redBright("Invalid Email"));
+    return res.status(400).send("Invalid Email or password.");
   }
 
   const validPassword = comparePassword(req.body.password, user.password);
   if (!validPassword) {
     console.log(chalk.redBright("Invalid password"));
-    return res.status(400).send("Invalid email or password.");
+    return res.status(400).send("Invalid Email or password.");
   }
 
   res.json({
