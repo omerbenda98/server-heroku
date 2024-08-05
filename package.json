@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "start": "cross-env NODE_ENV=production node .",
-    "dev": "cross-env NODE_ENV=development nodemon ."
+    "dev": "cross-env NODE_ENV=development nodemon .",
+    "test": "mocha --exit 'test/**/*.js'"
   },
   "keywords": [
     "Business card",
@@ -29,6 +30,10 @@
     "socket.io": "^4.7.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.15"
+    "chai": "^4.3.4",
+    "esm": "^3.2.25",
+    "mocha": "^10.7.0",
+    "nodemon": "^2.0.15",
+    "supertest": "^7.0.0"
   }
 }
