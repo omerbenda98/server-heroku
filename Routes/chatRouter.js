@@ -13,7 +13,7 @@ router.get("/history", async (req, res) => {
     const messages = await Chat.find({ roomID }).sort("timestamp");
     res.status(200).json(messages);
   } catch (error) {
-    res.status(500).json({ error: "error retrieving chat history" });
+    res.status(500).json({ error: "Error retrieving chat history" });
   }
 });
 
