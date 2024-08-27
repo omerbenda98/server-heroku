@@ -4,8 +4,8 @@
   "description": "Business card app for businesses",
   "main": "app.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=production node .",
-    "dev": "cross-env NODE_ENV=development nodemon .",
+    "start": "cross-env NODE_ENV=production node server.js",
+    "dev": "cross-env NODE_ENV=development node server.js",
     "test": "mocha --exit 'test/**/*.js'"
   },
   "keywords": [

@@ -1,17 +1,14 @@
 const mongoose = require("mongoose");
-const chalk = require("chalk");
 const config = require("config");
 
-console.log("con str", config.get("dbConfig.url"));
+const connectToDb = () => {
+  mongoose
+    .connect(config.get("dbConfig.url"), {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
+    .then(() => console.log("Connected to MongoDB..."))
+    .catch((err) => console.error("Could not connect to MongoDB...", err));
+};
 
-mongoose
-  .connect(config.get("dbConfig.url"), {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log(chalk.magentaBright.bold("connected to MongoDb!")))
-  .catch((error) =>
-    console.log(chalk.redBright.bold(`could not connect to mongoDb: ${error}`))
-  );
-
-module.exports = mongoose;
+module.exports = connectToDb;

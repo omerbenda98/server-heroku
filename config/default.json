@@ -1,3 +1,4 @@
 {
+  "port": 8181,
   "jwtKey": "YourPrivateKeyVer3"
 }
