@@ -3,5 +3,6 @@
   "dbConfig": {
     "url": "mongodb+srv://admin:Aa123456!@cluster0.u45jsdg.mongodb.net/?retryWrites=true&w=majority"
   },
-  "jwtKey": "YourPrivateKeyVer3"
+  "jwtKey": "YourPrivateKeyVer3",
+  "WEBHOOK_SECRET": "0330105125a385acee588979e94b804a8f757c28"
 }
