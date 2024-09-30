@@ -99,7 +99,11 @@ module.exports = function (app) {
         socket.leave(roomId);
       });
     });
-
+    const secret = process.env.WEBHOOK_SECRET;
+    if (!secret) {
+      console.error("WEBHOOK_SECRET environment variable is not set");
+      process.exit(1);
+    }
     // Routes
     app.get("/api/validate-token", (req, res) => {
       const token = req.headers.authorization?.split(" ")[1];
@@ -131,6 +135,34 @@ module.exports = function (app) {
       },
     });
     const upload = multer({ storage: storage });
+
+    app.post("/deploy", (req, res) => {
+      const signature = req.headers["x-hub-signature"];
+      if (!signature) {
+        return res.status(401).send("No signature");
+      }
+
+      const hmac = crypto.createHmac("sha1", secret);
+      const digest =
+        "sha1=" + hmac.update(JSON.stringify(req.body)).digest("hex");
+
+      if (signature !== digest) {
+        return res.status(401).send("Invalid signature");
+      }
+
+      exec(
+        "/home/ubuntu/deployment-scripts/deploy.sh",
+        (error, stdout, stderr) => {
+          if (error) {
+            console.error(`exec error: ${error}`);
+            return res.status(500).send("Deployment failed");
+          }
+          console.log(`stdout: ${stdout}`);
+          console.error(`stderr: ${stderr}`);
+          res.status(200).send("Deployment successful");
+        }
+      );
+    });
 
     app.post("/api/upload", upload.single("profilePic"), (req, res) => {
       if (req.file) {
