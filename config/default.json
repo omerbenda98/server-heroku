@@ -1,5 +1,5 @@
 {
   "port": 8181,
   "jwtKey": "YourPrivateKeyVer3",
-  "WEBHOOK_SECRET": "0330105125a385acee588979e94b804a8f757c28"
+  "WEBHOOK_SECRET": "51f2fef22e8abcdbe3ae20e54e9751b0e77c6468"
 }
