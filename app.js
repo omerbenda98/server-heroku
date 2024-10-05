@@ -99,7 +99,7 @@ module.exports = function (app) {
         socket.leave(roomId);
       });
     });
-    const secret = process.env.WEBHOOK_SECRET;
+    secret = config.get("WEBHOOK_SECRET");
     if (!secret) {
       console.error("WEBHOOK_SECRET environment variable is not set");
       process.exit(1);
