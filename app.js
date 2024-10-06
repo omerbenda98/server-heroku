@@ -169,18 +169,15 @@ module.exports = function (app) {
 
         // If we reach here, the signature is valid
         console.log("Signature verified successfully");
-        exec(
-          "/home/ubuntu/deployment-scripts/deploy.sh",
-          (error, stdout, stderr) => {
-            if (error) {
-              console.error(`exec error: ${error}`);
-              return res.status(500).send("Deployment failed");
-            }
-            console.log(`stdout: ${stdout}`);
-            console.error(`stderr: ${stderr}`);
-            res.status(200).send("Deployment successful");
+        exec("/home/ubuntu/  ", (error, stdout, stderr) => {
+          if (error) {
+            console.error(`exec error: ${error}`);
+            return res.status(500).send("Deployment failed");
           }
-        );
+          console.log(`stdout: ${stdout}`);
+          console.error(`stderr: ${stderr}`);
+          res.status(200).send("Deployment successful!");
+        });
       } catch (error) {
         console.error("Error in /deploy:", error);
         console.error("Error stack:", error.stack);
