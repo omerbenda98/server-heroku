@@ -4,6 +4,7 @@ const socketIo = require("socket.io");
 const cors = require("cors");
 const morgan = require("morgan");
 const chalk = require("chalk");
+const { exec } = require("child_process");
 const multer = require("multer");
 const jwt = require("jsonwebtoken");
 const config = require("config");
@@ -99,11 +100,7 @@ module.exports = function (app) {
         socket.leave(roomId);
       });
     });
-    secret = config.get("WEBHOOK_SECRET");
-    if (!secret) {
-      console.error("WEBHOOK_SECRET environment variable is not set");
-      process.exit(1);
-    }
+
     // Routes
     app.get("/api/validate-token", (req, res) => {
       const token = req.headers.authorization?.split(" ")[1];
@@ -136,34 +133,63 @@ module.exports = function (app) {
     });
     const upload = multer({ storage: storage });
 
-    app.post("/deploy", (req, res) => {
-      const signature = req.headers["x-hub-signature"];
-      if (!signature) {
-        return res.status(401).send("No signature");
-      }
+    secret = config.get("WEBHOOK_SECRET");
+    if (!secret) {
+      console.error("WEBHOOK_SECRET environment variable is not set");
+      process.exit(1);
+    }
 
-      const hmac = crypto.createHmac("sha1", secret);
-      const digest =
-        "sha1=" + hmac.update(JSON.stringify(req.body)).digest("hex");
+    app.post("/deploy", express.json(), (req, res) => {
+      try {
+        const signature = req.headers["x-hub-signature"];
 
-      if (signature !== digest) {
-        return res.status(401).send("Invalid signature");
-      }
-
-      exec(
-        "/home/ubuntu/deployment-scripts/deploy.sh",
-        (error, stdout, stderr) => {
-          if (error) {
-            console.error(`exec error: ${error}`);
-            return res.status(500).send("Deployment failed");
-          }
-          console.log(`stdout: ${stdout}`);
-          console.error(`stderr: ${stderr}`);
-          res.status(200).send("Deployment successful");
+        if (!signature) {
+          return res.status(401).send("No signature");
         }
-      );
-    });
+        const secret = config.get("WEBHOOK_SECRET"); // Make sure this matches your actual secret
 
+        if (!req.rawBody) {
+          console.log(
+            "req.rawBody is undefined. Falling back to JSON.stringify(req.body)"
+          );
+          req.rawBody = JSON.stringify(req.body);
+        }
+
+        const digest =
+          "sha1=" +
+          crypto.createHmac("sha1", secret).update(req.rawBody).digest("hex");
+        console.log("Calculated digest:", digest);
+
+        if (signature !== digest) {
+          console.log("Signature mismatch:");
+          console.log("Received:", signature);
+          console.log("Calculated:", digest);
+          return res.status(401).send("Invalid signature");
+        }
+
+        // If we reach here, the signature is valid
+        console.log("Signature verified successfully");
+        exec(
+          "/home/ubuntu/deployment-scripts/deploy.sh",
+          (error, stdout, stderr) => {
+            if (error) {
+              console.error(`exec error: ${error}`);
+              return res.status(500).send("Deployment failed");
+            }
+            console.log(`stdout: ${stdout}`);
+            console.error(`stderr: ${stderr}`);
+            res.status(200).send("Deployment successful");
+          }
+        );
+        res.status(200).send("Deployment webhook received");
+      } catch (error) {
+        console.error("Error in /deploy:", error);
+        console.error("Error stack:", error.stack);
+        res.status(500).send("Internal server error");
+      }
+    });
+    // Apply express.json() middleware after defining the /deploy route
+    app.use(express.json());
     app.post("/api/upload", upload.single("profilePic"), (req, res) => {
       if (req.file) {
         res.json({ imageUrl: `uploads/${req.file.filename}` });
