@@ -176,7 +176,7 @@ module.exports = function (app) {
           }
           console.log(`stdout: ${stdout}`);
           console.error(`stderr: ${stderr}`);
-          res.status(200).send("Deployment successful!");
+          res.status(200).send("Deployment successful");
         });
       } catch (error) {
         console.error("Error in /deploy:", error);
