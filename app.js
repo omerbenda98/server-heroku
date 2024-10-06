@@ -181,7 +181,6 @@ module.exports = function (app) {
             res.status(200).send("Deployment successful");
           }
         );
-        res.status(200).send("Deployment webhook received");
       } catch (error) {
         console.error("Error in /deploy:", error);
         console.error("Error stack:", error.stack);
