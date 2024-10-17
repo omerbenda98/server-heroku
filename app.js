@@ -109,7 +109,7 @@ module.exports = function (app) {
       if (!token) {
         return res
           .status(401)
-          .json({ valid: false, message: "Token required" });
+          .json({ valid: false, message: "Token Required" });
       }
       jwt.verify(token, config.get("jwtKey"), (err, user) => {
         if (err) {
