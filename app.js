@@ -115,7 +115,7 @@ module.exports = function (app) {
         if (err) {
           return res
             .status(401)
-            .json({ valid: false, message: "Token invalid" });
+            .json({ valid: false, message: "Token Invalid" });
         }
         return res.json({ valid: true, user });
       });
