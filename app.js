@@ -180,7 +180,7 @@ module.exports = function (app) {
             }
             console.log(`stdout: ${stdout}`);
             console.error(`stderr: ${stderr}`);
-            res.status(200).send("Deployment Successful");
+            res.status(200).send("Deployment successful");
             // THIS IS A CHANGE I MADE
           }
         );
