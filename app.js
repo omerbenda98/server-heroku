@@ -176,7 +176,7 @@ module.exports = function (app) {
           (error, stdout, stderr) => {
             if (error) {
               console.error(`exec error: ${error}`);
-              return res.status(500).send("Deployment failed");
+              return res.status(500).send("Deployment Failed");
             }
             console.log(`stdout: ${stdout}`);
             console.error(`stderr: ${stderr}`);
