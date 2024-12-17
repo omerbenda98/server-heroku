@@ -42,54 +42,17 @@ jobs:
         with:
           context: .
           push: true
-          tags: omerbenda98/server-heroku:${{ github.sha }}
+          tags: omerbenda98/puppy-adoption-backend:${{ github.sha }}
 
-      # Checkout and update K8s repo
-      - name: Checkout K8s repository
-        uses: actions/checkout@v4
-        with:
-          repository: omerbenda98/puppy-adoption-k8s
-          token: ${{ secrets.K8S_REPO_TOKEN }}
-          path: k8s-repo
-
-      - name: Update Kubernetes deployment
+      # Update K8s manifests
+      - name: Update K8s manifests
         run: |
-          cd k8s-repo
-          sed -i 's|image: omerbenda98/server-heroku:.*|image: omerbenda98/server-heroku:${{ github.sha }}|' development/backend/deployment.yaml
-          sed -i 's|image: omerbenda98/server-heroku:.*|image: omerbenda98/server-heroku:${{ github.sha }}|' production/backend/deployment.yaml
-
-      - name: Commit updated manifests
-        run: |
+          git clone https://x-access-token:${{ secrets.K8S_REPO_TOKEN }}@github.com/omerbenda98/puppy-adoption-k8s.git k8s-repo
           cd k8s-repo
           git config --global user.name 'GitHub Actions Bot'
           git config --global user.email 'actions@github.com'
-          git
-
-# name: Deploy to Heroku
-
-# on:
-#   push:
-#     branches:
-#       - main  # or your default branch
-
-# jobs:
-#   build:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v4
-#       - uses: actions/setup-node@v4
-#         with:
-#           node-version: '20'  # or your preferred version
-#       - run: npm ci
-#       - run: npm test
-
-#   deploy:
-#     needs: build
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v4
-#       - uses: akhileshns/heroku-deploy@v3.12.14
-#         with:
-#           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-#           heroku_app_name: "dog-adopt-app"
-#           heroku_email: "omerbenda98@gmail.com"
+          sed -i 's|image: omerbenda98/puppy-adoption-backend:.*|image: omerbenda98/puppy-adoption-backend:${{ github.sha }}|' development/backend/deployment.yaml
+          sed -i 's|image: omerbenda98/puppy-adoption-backend:.*|image: omerbenda98/puppy-adoption-backend:${{ github.sha }}|' production/backend/deployment.yaml
+          git add development/backend/deployment.yaml production/backend/deployment.yaml
+          git commit -m "Update backend deployment image to ${{ github.sha }}"
+          git push
