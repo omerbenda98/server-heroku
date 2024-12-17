@@ -19,13 +19,13 @@ describe("GET /", () => {
     }
   });
 
-  it("should return Hello World", (done) => {
+  it("should return Hello World!!!!!", (done) => {
     request(app)
       .get("/")
       .expect(200)
       .end((err, res) => {
         if (err) return done(err);
-        expect(res.text).to.equal("Hello World");
+        expect(res.text).to.equal("Hello World!!!!!");
         done();
       });
   });
