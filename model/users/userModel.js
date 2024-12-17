@@ -1,6 +1,51 @@
 const mongoose = require("mongoose");
 const minAllowEmpty = require("../../services/validatorAllowEmpty");
 
+const notificationSchema = new mongoose.Schema({
+  type: { type: String, required: true }, // e.g., 'adoption_request', 'adoption_confirmed'
+  message: { type: String, required: true },
+  data: {
+    dogId: { type: mongoose.Schema.Types.ObjectId, ref: "card" },
+    dogName: String,
+    dogBreed: String,
+    dogAge: String,
+    dogImageUrl: String,
+    adopterId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    adopterName: String,
+    adopterEmail: String,
+    adopterPhone: String,
+    adopterFirstName: String,
+    adopterLastName: String,
+    originalOwnerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    requestDate: Date,
+    formData: mongoose.Schema.Types.Mixed,
+  },
+  read: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const adoptionRequestSchema = new mongoose.Schema({
+  originalOwner: {
+    ownerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    name: String, // Original owner's name
+  },
+  dog: {
+    dogId: { type: mongoose.Schema.Types.ObjectId, ref: "card" },
+    name: String,
+    breed: String,
+    age: String,
+  },
+  status: {
+    type: String,
+    enum: ["pending", "accepted", "rejected"],
+    default: "pending",
+  },
+  requestDate: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
 const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
@@ -107,6 +152,8 @@ const userSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now },
   isAdmin: { type: Boolean, default: false },
+  notifications: [notificationSchema],
+  requests_sent: [adoptionRequestSchema],
 });
 
 const User = mongoose.model("User", userSchema);

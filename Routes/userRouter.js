@@ -6,6 +6,8 @@ const { generateAuthToken } = require("../services/token");
 const _ = require("lodash");
 const router = require("express").Router();
 const User = require("../model/users/userModel");
+const mongoose = require("mongoose");
+
 const auth = require("../middlewares/authorization");
 const chalk = require("chalk");
 const normalizeUser = require("../model/users/NormalizeUser");
@@ -69,6 +71,200 @@ router.get("/getAllUsers", auth, async (req, res) => {
     res.status(500).send(err);
   }
 });
+router.get("/:userId/notifications", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ notifications: user.notifications });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      message: "Error fetching notifications",
+      error: error.message,
+    });
+  }
+});
+
+// Get user's sent adoption requests
+router.get("/:userId/requests-sent", auth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Validate that the requesting user is authorized to view these requests
+    if (req.user._id.toString() !== userId && !req.user.isAdmin) {
+      return res.status(403).json({
+        message: "Not authorized to view these requests",
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    // Sort requests by date, most recent first
+    const sortedRequests = user.requests_sent.sort(
+      (a, b) => b.requestDate - a.requestDate
+    );
+
+    res.status(200).json({
+      requests: sortedRequests,
+      total: sortedRequests.length,
+    });
+  } catch (error) {
+    console.error("Error fetching sent requests:", error);
+    res.status(500).json({
+      message: "Error fetching sent requests",
+      error: error.message,
+    });
+  }
+});
+
+// Optional: Add an endpoint to get a specific request by ID
+router.get("/:userId/requests-sent/:requestId", auth, async (req, res) => {
+  try {
+    const { userId, requestId } = req.params;
+
+    // Validate that the requesting user is authorized
+    if (req.user._id.toString() !== userId && !req.user.isAdmin) {
+      return res.status(403).json({
+        message: "Not authorized to view this request",
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    const request = user.requests_sent.id(requestId);
+    if (!request) {
+      return res.status(404).json({
+        message: "Request not found",
+      });
+    }
+
+    res.status(200).json({ request });
+  } catch (error) {
+    console.error("Error fetching request:", error);
+    res.status(500).json({
+      message: "Error fetching request",
+      error: error.message,
+    });
+  }
+});
+
+router.post("/submit-adoption", async (req, res) => {
+  const { formData, cardOwnerId, cardId, cardData } = req.body;
+  console.log("Request body:", req.body);
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(cardOwnerId)) {
+      console.log("Invalid cardOwnerId:", cardOwnerId);
+      return res.status(400).json({ message: "Invalid card owner ID" });
+    }
+
+    // Find both the card owner and the adopter
+    const [cardOwner, adopter] = await Promise.all([
+      User.findById(cardOwnerId),
+      User.findById(formData.userId),
+    ]);
+
+    if (!cardOwner) {
+      console.log("Card owner not found for ID:", cardOwnerId);
+      return res.status(404).json({ message: "Card owner not found" });
+    }
+
+    if (!adopter) {
+      console.log("Adopter not found for ID:", formData.userId);
+      return res.status(404).json({ message: "Adopter not found" });
+    }
+
+    // Validate cardData has all required properties
+    if (
+      !cardData.name ||
+      !cardData.breed ||
+      !cardData.age ||
+      !cardData.imgUrl
+    ) {
+      return res.status(400).json({
+        message: "Missing required card data properties",
+        required: ["name", "breed", "age", "imgUrl"],
+        received: cardData,
+      });
+    }
+
+    // Create the adoption request record
+    const adoptionRequest = {
+      originalOwner: {
+        ownerId: cardOwnerId,
+        firstName: cardOwner.firstName,
+        lastName: cardOwner.lastName,
+      },
+      dog: {
+        dogId: cardId,
+        name: cardData.name,
+        breed: cardData.breed,
+        age: cardData.age,
+      },
+      status: "pending",
+      requestDate: new Date(),
+    };
+
+    // Add to adopter's requests_sent array
+    adopter.requests_sent.push(adoptionRequest);
+    console.log("card data", cardData);
+    console.log("formdata", formData);
+
+    // Create notification for card owner
+    const notification = {
+      type: "adoption_request",
+      message: `New adoption request from ${formData.name}`,
+      data: {
+        dogId: cardId,
+        dogName: cardData.name,
+        dogBreed: cardData.breed,
+        dogAge: cardData.age,
+        dogImageUrl: cardData.imgUrl,
+        adopterId: formData.userId,
+        adopterName: formData.name,
+        adopterEmail: formData.email,
+        adopterPhone: formData.phone,
+        adopterFirstName: formData.firstName,
+        adopterLastName: formData.lastName,
+        originalOwnerId: cardOwnerId,
+        requestDate: new Date(),
+        formData: formData,
+      },
+    };
+
+    cardOwner.notifications.push(notification);
+
+    // Save both users
+    await Promise.all([cardOwner.save(), adopter.save()]);
+
+    res.status(200).json({
+      message: "Adoption application sent to card owner",
+      notificationId:
+        cardOwner.notifications[cardOwner.notifications.length - 1]._id,
+      requestId: adopter.requests_sent[adopter.requests_sent.length - 1]._id,
+    });
+  } catch (error) {
+    console.error("Error in submit-adoption:", error);
+    res.status(500).json({
+      message: "Error sending adoption application",
+      error: error.message,
+    });
+  }
+});
 
 // gets connected users info
 router.get("/userInfo", auth, (req, res) => {
@@ -100,7 +296,6 @@ router.put("/userInfo", auth, async (req, res) => {
       token: { token },
     });
   } catch (err) {
-    console.log(err);
     res.status(500).send(err);
   }
 });

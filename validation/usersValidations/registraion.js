@@ -21,6 +21,7 @@ function validateRegistration(user) {
     houseNumber: Joi.string().min(1).max(256).required(),
     zipCode: Joi.number().min(1).max(99999999).allow(""),
     biz: Joi.boolean(),
+    notifications: Joi.array(),
   });
 
   return schema.validate(user);

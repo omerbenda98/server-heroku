@@ -9,6 +9,7 @@ const multer = require("multer");
 const jwt = require("jsonwebtoken");
 const config = require("config");
 const { Server } = require("socket.io");
+const mongoose = require("mongoose");
 const crypto = require("crypto");
 const usersRouter = require("./Routes/userRouter");
 const cardsRouter = require("./Routes/cardsRouter");
@@ -17,6 +18,7 @@ const Chat = require("./model/chats/chatModel");
 const { validateChat } = require("./validation/chatValidation");
 const normalizeChat = require("./model/chats/NormalizeChat");
 const initialData = require("./initialData/initialData");
+const adoptionRouter = require("./Routes/adoptionRouter");
 
 const connectToDb = require("./DB/connectToDb");
 
@@ -52,7 +54,7 @@ module.exports = function (app) {
         callback(null, true);
       },
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
+      allowedHeaders: ["Content-Type", "Authorization", "x-auth-token"],
       credentials: true,
       optionsSuccessStatus: 200,
     };
@@ -102,8 +104,59 @@ module.exports = function (app) {
         socket.leave(roomId);
       });
     });
+    const visitSchema = new mongoose.Schema({
+      timestamp: { type: Date, default: Date.now },
+    });
 
+    const Visit = mongoose.model("Visit", visitSchema);
     // Routes
+    app.post("/api/track-visit", async (req, res) => {
+      try {
+        const visit = new Visit();
+        await visit.save();
+        res.status(200).json({ message: "Visit tracked successfully" });
+      } catch (error) {
+        res
+          .status(500)
+          .json({ message: "Error tracking visit", error: error.message });
+      }
+    });
+
+    // Endpoint to get visit statistics
+    app.get("/api/analytics/visits", async (req, res) => {
+      try {
+        const { period } = req.query;
+        let startDate;
+
+        switch (period) {
+          case "hour":
+            startDate = new Date(Date.now() - 60 * 60 * 1000);
+            break;
+          case "day":
+            startDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            break;
+          case "month":
+            startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+            break;
+          case "year":
+            startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+            break;
+          default:
+            startDate = new Date(0); // All time
+        }
+
+        const visits = await Visit.countDocuments({
+          timestamp: { $gte: startDate },
+        });
+        res.status(200).json({ visits });
+      } catch (error) {
+        res.status(500).json({
+          message: "Error fetching visit statistics",
+          error: error.message,
+        });
+      }
+    });
+
     app.get("/api/validate-token", (req, res) => {
       const token = req.headers.authorization?.split(" ")[1];
       if (!token) {
@@ -203,6 +256,7 @@ module.exports = function (app) {
     app.use("/api/users", usersRouter);
     app.use("/api/cards", cardsRouter);
     app.use("/api/chats", chatRouter);
+    app.use("/api/adoptions", adoptionRouter);
 
     // Initialize data
     initialData();
