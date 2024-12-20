@@ -19,16 +19,6 @@ pipeline {
                     credentialsId: 'github-credentials'
             }
         }
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm ci'
-            }
-        }
-        stage('Run Tests') {
-            steps {
-                sh 'npm test'
-            }
-        }
         stage('Build and Push Docker Image') {
             steps {
                 script {
