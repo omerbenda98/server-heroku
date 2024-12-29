@@ -35,7 +35,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 echo "Running tests..."
-                sh 'npm test -- --watchAll=false'  // Non-interactive mode for CI
+                sh 'npm test' 
             }
         }
         
