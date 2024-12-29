@@ -1,33 +1,57 @@
 pipeline {
     agent any
-    options {
-        skipDefaultCheckout(true)
-    }
-    tools {
-        nodejs 'nodejs'
-    }
+    
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         GITHUB_CREDENTIALS = credentials('github-credentials')
         DOCKER_IMAGE = 'omerbenda98/puppy-adoption-backend'
+        GIT_REPO = 'https://github.com/omerbenda98/server-heroku.git'
+        GIT_PATH = '/usr/bin/git'
+        BRANCH_NAME = 'staging'  // Matching frontend setup with staging branch
     }
+    
+    tools {
+        nodejs 'nodejs'
+    }
+    
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/omerbenda98/server-heroku.git',
-                    branch: 'main',
-                    credentialsId: 'github-credentials'
+                // Thorough cleanup and clone
+                sh """
+                    rm -rf .[!.]* ..?* * || true
+                    git clone -b ${BRANCH_NAME} ${GIT_REPO} .
+                """
             }
         }
+        
+        stage('Install Dependencies') {
+            steps {
+                echo "Installing Node.js dependencies..."
+                sh 'npm ci'
+            }
+        }
+        
+        stage('Run Tests') {
+            steps {
+                echo "Running tests..."
+                sh 'npm test -- --watchAll=false'  // Non-interactive mode for CI
+            }
+        }
+        
         stage('Build and Push Docker Image') {
             steps {
-                script {
-                    sh """
-                        echo \$DOCKERHUB_CREDENTIALS_PSW | docker login -u \$DOCKERHUB_CREDENTIALS_USR --password-stdin
-                        docker build -t ${DOCKER_IMAGE}:v1.\${BUILD_NUMBER} .
-                        docker push ${DOCKER_IMAGE}:v1.\${BUILD_NUMBER}
-                    """
-                }
+                echo "Building and pushing Docker image..."
+                sh """
+                    echo \$DOCKERHUB_CREDENTIALS_PSW | docker login -u \$DOCKERHUB_CREDENTIALS_USR --password-stdin
+                    docker build \
+                        --memory=2g \
+                        --memory-swap=2g \
+                        --cpu-period=100000 \
+                        --cpu-quota=25000 \
+                        -t ${DOCKER_IMAGE}:v1.\${BUILD_NUMBER} .
+                    docker push ${DOCKER_IMAGE}:v1.\${BUILD_NUMBER}
+                """
             }
             post {
                 always {
@@ -35,32 +59,54 @@ pipeline {
                 }
             }
         }
+        
         stage('Update K8s Manifests') {
             steps {
-                sh """
-                    set -e  # Exit on any error
-                    rm -rf k8s-repo || true
-                    git config --global user.email "jenkins@jenkins.com"
-                    git config --global user.name "Jenkins"
-                    git clone https://\$GITHUB_CREDENTIALS_USR:\$GITHUB_CREDENTIALS_PSW@github.com/omerbenda98/puppy-adoption-k8s.git k8s-repo
-                    cd k8s-repo
-                    if [ ! -f development/backend/deployment.yaml ] || [ ! -f production/backend/deployment.yaml ]; then
-                        echo "Deployment files not found!"
-                        exit 1
-                    fi
+                script {
+                    def targetPath = 'staging'
+                    def targetNamespace = 'staging'
                     
-                    sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:v1.\${BUILD_NUMBER}|" development/backend/deployment.yaml
-                    sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:v1.\${BUILD_NUMBER}|" production/backend/deployment.yaml
+                    echo "Updating K8s manifests for ${targetNamespace} environment..."
                     
-                    if git diff --quiet; then
-                        echo "No changes to commit"
-                    else
-                        git add development/backend/deployment.yaml production/backend/deployment.yaml
-                        git commit -m "Update backend deployment image to v1.\${BUILD_NUMBER}"
-                        git push
-                    fi
-                """
+                    sh """
+                        rm -rf k8s-repo || true
+                        
+                        # Initialize new Git repo for k8s
+                        ${GIT_PATH} init k8s-repo
+                        cd k8s-repo
+                        ${GIT_PATH} config --local user.email "jenkins@jenkins.com"
+                        ${GIT_PATH} config --local user.name "Jenkins"
+                        
+                        # Clone k8s repo
+                        ${GIT_PATH} remote add origin https://\$GITHUB_CREDENTIALS_USR:\$GITHUB_CREDENTIALS_PSW@github.com/omerbenda98/puppy-adoption-k8s.git
+                        ${GIT_PATH} fetch origin main
+                        ${GIT_PATH} checkout -b main origin/main
+                        
+                        echo "Updating deployment.yaml..."
+                        sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:v1.\${BUILD_NUMBER}|" ${targetPath}/backend/deployment.yaml
+                        
+                        if ${GIT_PATH} diff --quiet; then
+                            echo "No changes to commit"
+                        else
+                            echo "Committing and pushing changes..."
+                            ${GIT_PATH} add ${targetPath}/backend/deployment.yaml
+                            ${GIT_PATH} commit -m "Update backend image to v1.\${BUILD_NUMBER} in ${targetNamespace}"
+                            ${GIT_PATH} push origin main
+                        fi
+                    """
+                }
             }
+        }
+    }
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed! Check the logs above for details.'
+        }
+        always {
+            cleanWs()
         }
     }
 }
